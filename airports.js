@@ -38,4 +38,5 @@ const AIRPORTS = {
   MLA: { city: "Valletta", country: "Malta", lat: 35.85, lon: 14.49 },
   PDL: { city: "Ponta Delgada", country: "Portugal", lat: 37.74, lon: -25.7 },
   HKK: { city: "Hokitika Airfield", country: "Neuseeland", lat: -42.71, lon: 170.99 },
+  GOT: { city: "Göteborg", country: "Schweden", lat: 57.66, lon: 12.28 },
 };
