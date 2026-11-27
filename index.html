@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unsere Flüge</title>
-  <!-- "?v=5": Versionsnummer, damit der Browser nach Änderungen nicht die alte Datei nimmt -->
-  <link rel="stylesheet" href="style.css?v=5">
+  <!-- "?v=6": Versionsnummer, damit der Browser nach Änderungen nicht die alte Datei nimmt -->
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <main class="map-wrap">
@@ -51,8 +51,9 @@
       <div class="buttons">
         <button id="btn-skip">Überspringen</button>
         <button id="btn-replay">Nochmal abspielen</button>
-        <!-- nur auf deinen Geräten sichtbar (siehe admin.js) -->
+        <!-- nur auf euren Geräten sichtbar (siehe admin.js) -->
         <button id="btn-add" hidden>+ Flug</button>
+        <button id="btn-list" hidden>Liste</button>
       </div>
     </div>
 
@@ -61,7 +62,7 @@
   <!-- Formular für neue Flüge (erscheint nach Klick auf "+ Flug") -->
   <div class="modal" id="add-modal" hidden>
     <form class="modal-card" id="add-form" autocomplete="off">
-      <h2>Neuer Flug</h2>
+      <h2 id="f-title">Neuer Flug</h2>
 
       <label>Wer?
         <select id="f-who"></select>
@@ -104,6 +105,19 @@
     </form>
   </div>
 
+  <!-- Flugliste zum Bearbeiten und Löschen (erscheint nach Klick auf "Liste") -->
+  <div class="modal" id="list-modal" hidden>
+    <div class="modal-card list-card">
+      <div class="list-head">
+        <h2>Flugliste</h2>
+        <button type="button" id="list-close" class="secondary">Schließen</button>
+      </div>
+      <div class="people" id="list-people"></div>
+      <ul class="flight-list" id="flight-list"></ul>
+      <p class="status" id="list-status"></p>
+    </div>
+  </div>
+
   <!-- Bibliotheken (liegen im Ordner lib, nicht bearbeiten) -->
   <script src="lib/d3.min.js"></script>
   <script src="lib/topojson-client.min.js"></script>
@@ -120,7 +134,7 @@
   </script>
 
   <!-- Eigener Code: Karte, Animation, Zähler; Formular für neue Flüge -->
-  <script src="app.js?v=5"></script>
-  <script src="admin.js?v=5"></script>
+  <script src="app.js?v=6"></script>
+  <script src="admin.js?v=6"></script>
 </body>
 </html>

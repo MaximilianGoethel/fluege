@@ -1,7 +1,7 @@
-// ===== Neue Flüge direkt auf der Website eintragen =====
-// Das Formular schreibt den Flug über die GitHub-Schnittstelle in flights.js
-// (und neue Flughäfen in airports.js). Dafür braucht es einen persönlichen
-// GitHub-Schlüssel (Token). Er wird nur in deinem Browser gespeichert, nie im Repo.
+// ===== Flüge auf der Website eintragen, bearbeiten und löschen =====
+// Speichert über die GitHub-Schnittstelle direkt in flights.js (und neue Flughäfen
+// in airports.js). Dafür braucht es einen persönlichen GitHub-Schlüssel (Token).
+// Er wird nur im Browser gespeichert, nie im Repo.
 
 
 // ---------- Einstellungen ----------
@@ -36,7 +36,7 @@ function countryName(code) {
 }
 
 
-// ---------- Schlüssel im Browser merken ----------
+// ---------- Im Browser merken: Schlüssel und Person ----------
 
 function getToken() {
   try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (error) { return ""; }
@@ -62,8 +62,12 @@ function saveLastPerson(who) {
 // ---------- Elemente auf der Seite ----------
 
 const addButton = document.getElementById("btn-add");
+const listButton = document.getElementById("btn-list");
+
+// Formular (für neue und geänderte Flüge)
 const modal = document.getElementById("add-modal");
 const form = document.getElementById("add-form");
+const formTitle = document.getElementById("f-title");
 const statusText = document.getElementById("f-status");
 const saveButton = document.getElementById("f-save");
 const tokenWrap = document.getElementById("f-token-wrap");
@@ -72,13 +76,10 @@ const dateInput = document.getElementById("f-date");
 const durationInput = document.getElementById("f-duration");
 const whoSelect = document.getElementById("f-who");
 
-// Auswahl "Wer?" mit allen Personen aus people.js füllen
-Object.keys(PEOPLE).forEach(key => {
-  const option = document.createElement("option");
-  option.value = key;
-  option.textContent = PEOPLE[key].name;
-  whoSelect.appendChild(option);
-});
+// Flugliste
+const listModal = document.getElementById("list-modal");
+const listElement = document.getElementById("flight-list");
+const listStatus = document.getElementById("list-status");
 
 // Für "Von" und "Nach" jeweils: Eingabefeld, Info-Zeile, Feld für den Stadtnamen
 const fields = {
@@ -98,10 +99,19 @@ const fields = {
   },
 };
 
-// Button "+ Flug eintragen" nur auf deinen Geräten zeigen:
+// Auswahl "Wer?" mit allen Personen aus people.js füllen
+Object.keys(PEOPLE).forEach(key => {
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = PEOPLE[key].name;
+  whoSelect.appendChild(option);
+});
+
+// Buttons "+ Flug" und "Liste" nur auf euren Geräten zeigen:
 // wenn ein Schlüssel gespeichert ist oder die Adresse auf #neu endet
 if (getToken() || location.hash === "#neu") {
   addButton.hidden = false;
+  listButton.hidden = false;
 }
 
 
@@ -215,6 +225,9 @@ function checkField(key) {
 
 // ---------- Formular öffnen und schließen ----------
 
+let editing = null;        // Flug, der gerade bearbeitet wird (null = neuer Flug)
+let backToList = false;    // nach dem Speichern zurück zur Liste?
+
 // Heutiges Datum (nach deiner Uhr) als "JJJJ-MM-TT"
 function today() {
   const d = new Date();
@@ -222,17 +235,31 @@ function today() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function openForm() {
+// Öffnet das Formular: leer für einen neuen Flug oder ausgefüllt zum Bearbeiten
+function openForm(flight) {
+  editing = flight || null;
   form.reset();
-  dateInput.value = today();
-  // vorauswählen: wer gerade angezeigt wird, sonst wer zuletzt eingetragen hat
-  const last = getLastPerson();
-  whoSelect.value = selected !== "alle" ? selected : (PEOPLE[last] ? last : DEFAULT_PERSON);
   Object.keys(fields).forEach(key => {
     fields[key].airport = null;
     fields[key].info.textContent = "";
     fields[key].cityWrap.hidden = true;
   });
+
+  if (editing) {
+    formTitle.textContent = "Flug bearbeiten";
+    dateInput.value = editing.date;
+    fields.from.input.value = editing.from;
+    fields.to.input.value = editing.to;
+    durationInput.value = editing.duration || "";
+    whoSelect.value = personOf(editing);
+  } else {
+    formTitle.textContent = "Neuer Flug";
+    dateInput.value = today();
+    // vorauswählen: wer gerade angezeigt wird, sonst wer zuletzt eingetragen hat
+    const last = getLastPerson();
+    whoSelect.value = selected !== "alle" ? selected : (PEOPLE[last] ? last : DEFAULT_PERSON);
+  }
+
   tokenWrap.hidden = Boolean(getToken());
   setStatus("Lade Flughafen-Liste …", "");
   saveButton.disabled = true;
@@ -242,13 +269,22 @@ function openForm() {
     .then(() => {
       setStatus("", "");
       saveButton.disabled = false;
-      fields.from.input.focus();
+      if (editing) {
+        checkField("from");
+        checkField("to");
+      } else {
+        fields.from.input.focus();
+      }
     })
     .catch(error => setStatus(error.message, "error"));
 }
 
 function closeForm() {
   modal.hidden = true;
+  if (backToList) {
+    backToList = false;
+    openList();
+  }
 }
 
 function setStatus(text, type) {
@@ -256,13 +292,13 @@ function setStatus(text, type) {
   statusText.className = "status " + type;
 }
 
-addButton.addEventListener("click", openForm);
+addButton.addEventListener("click", () => openForm(null));
 document.getElementById("f-cancel").addEventListener("click", closeForm);
 fields.from.input.addEventListener("change", () => checkField("from"));
 fields.to.input.addEventListener("change", () => checkField("to"));
 
 
-// ---------- GitHub: Datei lesen und speichern ----------
+// ---------- GitHub: Dateien lesen und speichern ----------
 
 // Text ↔ Base64 (GitHub verschickt Dateien so; mit Umlauten)
 function decodeBase64(b64) {
@@ -318,15 +354,79 @@ async function writeFile(file, text, sha, message, token) {
   if (!response.ok) throw githubError(response.status);
 }
 
-// Neue Zeile vor dem Schluss-Zeichen einfügen ("];" bzw. "};")
+// Neue Zeile vor dem Schluss-Zeichen einfügen ("};" in airports.js)
 function insertLine(text, marker, line) {
   const pos = text.lastIndexOf(marker);
   if (pos === -1) throw new Error("Die Datei hat ein unerwartetes Format.");
   return text.slice(0, pos) + line + "\n" + text.slice(pos);
 }
 
+// Liest die Liste aus dem Text von flights.js bzw. airports.js
+function parseList(text, name) {
+  try {
+    return new Function(text + `\nreturn ${name};`)();
+  } catch (error) {
+    throw new Error(`Die Datei mit ${name} hat einen Fehler und kann nicht gelesen werden.`);
+  }
+}
 
-// ---------- Speichern ----------
+// Ein Flug als Zeile für flights.js
+function flightLine(flight) {
+  const order = ["date", "from", "to", "duration", "who", "note"];
+  const keys = order.filter(k => flight[k] !== undefined && flight[k] !== "")
+    .concat(Object.keys(flight).filter(k => !order.includes(k)));
+  return "  { " + keys.map(k => `${k}: ${JSON.stringify(flight[k])}`).join(", ") + " },";
+}
+
+// Sind zwei Einträge derselbe Flug?
+function sameFlight(a, b) {
+  return a.date === b.date && a.from === b.from && a.to === b.to &&
+    personOf(a) === personOf(b) && (a.duration || "") === (b.duration || "");
+}
+
+// Holt den aktuellen Stand von GitHub, wendet die Änderung an und speichert.
+// change: Funktion, die die Flugliste verändert. newAirports: neue Flughäfen (oder {}).
+async function saveChange(change, newAirports, message, token) {
+  // 1. Flughäfen: aktuellen Stand holen, neue ergänzen
+  const airportFile = await readFile("airports.js", token);
+  const codes = Object.keys(newAirports);
+  let freshAirports = parseList(airportFile.text, "AIRPORTS");
+  if (codes.length > 0) {
+    let text = airportFile.text;
+    codes.forEach(code => {
+      const a = newAirports[code];
+      const line = `  ${code}: { city: ${JSON.stringify(a.city)}, country: ${JSON.stringify(a.country)}, lat: ${a.lat}, lon: ${a.lon} },`;
+      text = insertLine(text, "};", line);
+    });
+    await writeFile("airports.js", text, airportFile.sha, `Neuer Flughafen: ${codes.join(", ")}`, token);
+    freshAirports = { ...freshAirports, ...newAirports };
+  }
+
+  // 2. Flüge: aktuellen Stand holen, ändern, Datei neu schreiben (Kommentare oben bleiben)
+  const flightFile = await readFile("flights.js", token);
+  const list = parseList(flightFile.text, "FLIGHTS");
+  change(list);
+  const start = flightFile.text.indexOf("const FLIGHTS");
+  const header = start > 0 ? flightFile.text.slice(0, start) : "";
+  const text = header + "const FLIGHTS = [\n" + list.map(flightLine).join("\n") + "\n];\n";
+  await writeFile("flights.js", text, flightFile.sha, message, token);
+
+  // 3. Seite sofort auf den neuen Stand bringen
+  Object.assign(AIRPORTS, freshAirports);
+  FLIGHTS.splice(0, FLIGHTS.length, ...list);
+}
+
+// Fehler beim Speichern: bei falschem Schlüssel diesen vergessen
+function handleSaveError(error, showMessage) {
+  if (/Schlüssel/.test(error.message)) {
+    forgetToken();
+    tokenWrap.hidden = false;
+  }
+  showMessage(error.message);
+}
+
+
+// ---------- Speichern (neuer oder geänderter Flug) ----------
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
@@ -356,57 +456,192 @@ form.addEventListener("submit", async event => {
     }
   });
 
-  // Zeile für flights.js
-  let flightLine = `  { date: "${date}", from: "${from.code}", to: "${to.code}"`;
-  if (duration) flightLine += `, duration: "${duration}"`;
-  flightLine += `, who: "${who}" },`;
+  // Der Flug, wie er gespeichert werden soll
+  const flight = { date: date, from: from.code, to: to.code };
+  if (duration) flight.duration = duration;
+  flight.who = who;
+  const label = `(${PEOPLE[who].name}): ${shortDate(date)} ${from.code} → ${to.code}`;
 
   saveButton.disabled = true;
   setStatus("Speichere …", "");
 
   try {
-    // 1. neue Flughäfen in airports.js
-    const codes = Object.keys(newAirports);
-    if (codes.length > 0) {
-      const file = await readFile("airports.js", token);
-      let text = file.text;
-      codes.forEach(code => {
-        const a = newAirports[code];
-        const line = `  ${code}: { city: ${JSON.stringify(a.city)}, country: ${JSON.stringify(a.country)}, lat: ${a.lat}, lon: ${a.lon} },`;
-        text = insertLine(text, "};", line);
-      });
-      await writeFile("airports.js", text, file.sha, `Neuer Flughafen: ${codes.join(", ")}`, token);
+    if (editing) {
+      const old = editing;
+      await saveChange(list => {
+        const index = list.findIndex(f => sameFlight(f, old));
+        if (index === -1) throw new Error("Dieser Flug wurde inzwischen geändert. Bitte Seite neu laden.");
+        // Notiz o. Ä. behalten, Rest ersetzen
+        const kept = { ...list[index] };
+        delete kept.duration;
+        list[index] = { ...kept, ...flight };
+      }, newAirports, `Flug geändert ${label}`, token);
+    } else {
+      await saveChange(list => list.push(flight), newAirports, `Neuer Flug ${label}`, token);
     }
 
-    // 2. Flug in flights.js
-    const file = await readFile("flights.js", token);
-    const text = insertLine(file.text, "];", flightLine);
-    await writeFile("flights.js", text, file.sha, `Neuer Flug (${PEOPLE[who].name}): ${shortDate(date)} ${from.code} → ${to.code}`, token);
-
-    // Geklappt: Schlüssel merken und den Flug sofort auf der Karte zeigen
+    // Geklappt: Schlüssel und Person merken, Karte neu zeichnen
     saveToken(token);
     saveLastPerson(who);
-    Object.assign(AIRPORTS, newAirports);
-    const flight = { date: date, from: from.code, to: to.code };
-    if (duration) flight.duration = duration;
-    flight.who = who;
-    FLIGHTS.push(flight);
-    // Wird gerade eine andere Person angezeigt? Dann zur Person des neuen Flugs wechseln
+    listButton.hidden = false;
     if (selected !== "alle" && selected !== who) {
-      selectPerson(who);
+      selectPerson(who);   // zur Person des Flugs wechseln
     } else {
       refreshFlights();
     }
 
     setStatus("Gespeichert ✓ Für alle sichtbar in ca. 1–2 Minuten.", "ok");
-    setTimeout(closeForm, 2500);
+    setTimeout(closeForm, 1500);
   } catch (error) {
-    // Bei falschem Schlüssel: vergessen und nochmal fragen
-    if (/Schlüssel/.test(error.message)) {
-      forgetToken();
-      tokenWrap.hidden = false;
-    }
-    setStatus(error.message, "error");
+    handleSaveError(error, message => setStatus(message, "error"));
     saveButton.disabled = false;
   }
 });
+
+
+// ---------- Flugliste: ansehen, bearbeiten, löschen ----------
+
+let listPerson = "alle";   // in der Liste gewählte Person
+
+// Auswahl-Buttons in der Liste (wie oben in der Box)
+const listChips = d3.select("#list-people")
+  .selectAll("button")
+  .data(choices)
+  .join("button")
+  .attr("type", "button")
+  .attr("class", "chip")
+  .on("click", (event, choice) => {
+    listPerson = choice.key;
+    renderList();
+  });
+
+listChips.append("span")
+  .attr("class", "chip-dot")
+  .style("background", c => c.color || allDot);
+
+listChips.append("span").text(c => c.name);
+
+function setListStatus(text, type) {
+  listStatus.textContent = text;
+  listStatus.className = "status " + type;
+}
+
+function openList() {
+  listPerson = selected;   // startet mit der Person, die gerade auf der Karte zu sehen ist
+  setListStatus("", "");
+  renderList();
+  listModal.hidden = false;
+}
+
+function closeList() {
+  listModal.hidden = true;
+}
+
+listButton.addEventListener("click", openList);
+document.getElementById("list-close").addEventListener("click", closeList);
+
+// Name einer Stadt (falls Flughafen fehlt: Code)
+function cityOf(code) {
+  return AIRPORTS[code] ? AIRPORTS[code].city : code;
+}
+
+// Baut die Liste neu auf (neueste Flüge oben)
+function renderList() {
+  listChips.classed("active", c => c.key === listPerson);
+
+  const items = FLIGHTS
+    .filter(f => listPerson === "alle" || personOf(f) === listPerson)
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  listElement.innerHTML = "";
+
+  if (items.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "list-empty";
+    empty.textContent = "Noch keine Flüge.";
+    listElement.appendChild(empty);
+    return;
+  }
+
+  items.forEach(flight => {
+    const person = PEOPLE[personOf(flight)];
+    const row = document.createElement("li");
+    row.className = "flight-row";
+
+    // farbiger Punkt der Person
+    const dot = document.createElement("span");
+    dot.className = "chip-dot";
+    dot.style.background = person ? person.color : "#888";
+
+    // Datum, Strecke, Details
+    const info = document.createElement("div");
+    info.className = "row-info";
+    const main = document.createElement("div");
+    main.className = "row-main";
+    main.textContent = `${shortDate(flight.date)} · ${flight.from} → ${flight.to}`;
+    const sub = document.createElement("div");
+    sub.className = "row-sub";
+    let details = `${cityOf(flight.from)} → ${cityOf(flight.to)}`;
+    if (listPerson === "alle" && person) details = `${person.name} · ${details}`;
+    if (flight.duration) details += ` · ${flight.duration} h`;
+    sub.textContent = details;
+    info.append(main, sub);
+
+    // Bearbeiten
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "icon-button";
+    editButton.title = "Bearbeiten";
+    editButton.textContent = "✎";
+    editButton.addEventListener("click", () => {
+      closeList();
+      backToList = true;
+      openForm(flight);
+    });
+
+    // Löschen (erst nach zweitem Klick)
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "icon-button danger";
+    deleteButton.title = "Löschen";
+    deleteButton.textContent = "Löschen";
+    deleteButton.addEventListener("click", () => {
+      if (!deleteButton.classList.contains("confirm")) {
+        deleteButton.classList.add("confirm");
+        deleteButton.textContent = "Sicher?";
+        setTimeout(() => {
+          deleteButton.classList.remove("confirm");
+          deleteButton.textContent = "Löschen";
+        }, 3000);
+        return;
+      }
+      deleteFlight(flight);
+    });
+
+    row.append(dot, info, editButton, deleteButton);
+    listElement.appendChild(row);
+  });
+}
+
+async function deleteFlight(flight) {
+  const token = getToken();
+  if (!token) {
+    setListStatus("Kein Schlüssel gespeichert. Bitte zuerst über „+ Flug“ den Schlüssel eingeben.", "error");
+    return;
+  }
+  const name = PEOPLE[personOf(flight)] ? PEOPLE[personOf(flight)].name : personOf(flight);
+  setListStatus("Lösche …", "");
+  try {
+    await saveChange(list => {
+      const index = list.findIndex(f => sameFlight(f, flight));
+      if (index === -1) throw new Error("Dieser Flug wurde inzwischen geändert. Bitte Seite neu laden.");
+      list.splice(index, 1);
+    }, {}, `Flug gelöscht (${name}): ${shortDate(flight.date)} ${flight.from} → ${flight.to}`, token);
+    refreshFlights();
+    renderList();
+    setListStatus("Gelöscht ✓", "ok");
+  } catch (error) {
+    handleSaveError(error, message => setListStatus(message, "error"));
+  }
+}

@@ -177,7 +177,7 @@ body {
 }
 
 button {
-  padding: 6px 12px;
+  padding: 6px 10px;
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
@@ -301,6 +301,86 @@ button.secondary {
   gap: 8px;
 }
 
+/* ===== Flugliste ===== */
+.list-card {
+  max-width: 460px;
+  max-height: 85vh;
+  grid-template-rows: auto auto 1fr auto;
+}
+
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-card .people {
+  margin-top: 0;
+}
+
+.flight-list {
+  min-height: 0; /* damit die Liste scrollt statt das Fenster zu sprengen */
+  list-style: none;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+
+.flight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-main {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-sub {
+  color: var(--muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list-empty {
+  padding: 16px 2px;
+  color: var(--muted);
+}
+
+/* kleine Buttons in der Liste */
+.icon-button {
+  padding: 4px 9px;
+  color: var(--muted);
+  border-color: var(--border);
+  font-size: 0.8rem;
+}
+
+/* Löschen: rot beim Drüberfahren (nur mit Maus) und bei der Rückfrage "Sicher?" */
+.icon-button.confirm {
+  color: #ff8a8a;
+  border-color: #ff8a8a;
+  background: rgba(255, 138, 138, 0.1);
+}
+
+@media (hover: hover) {
+  .icon-button.danger:hover {
+    color: #ff8a8a;
+    border-color: #ff8a8a;
+  }
+}
+
 /* ===== Handy: Box oben über die ganze Breite, Zahlen nebeneinander ===== */
 @media (max-width: 700px) {
   .panel {
@@ -337,5 +417,9 @@ button.secondary {
 
   .buttons {
     margin-top: 12px;
+  }
+
+  .row-main {
+    font-size: 0.88rem;
   }
 }
