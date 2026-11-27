@@ -72,4 +72,5 @@ const FLIGHTS = [
   { date: "2025-02-10", from: "STN", to: "FMM", who: "emanuel" },
   { date: "2025-04-12", from: "ICN", to: "PVG", who: "yaro" },
   { date: "2025-04-13", from: "PVG", to: "IST", who: "yaro" },
+  { date: "2025-05-07", from: "LPA", to: "FMM", who: "emanuel" },
 ];
