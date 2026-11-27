@@ -40,4 +40,5 @@ const AIRPORTS = {
   HKK: { city: "Hokitika Airfield", country: "Neuseeland", lat: -42.71, lon: 170.99 },
   GOT: { city: "Göteborg", country: "Schweden", lat: 57.66, lon: 12.28 },
   CFU: { city: "Kerkyra", country: "Griechenland", lat: 39.6, lon: 19.91 },
+  LHR: { city: "London", country: "Vereinigtes Königreich", lat: 51.47, lon: -0.46 },
 };
