@@ -48,4 +48,5 @@ const FLIGHTS = [
   { date: "2026-08-29", from: "FRA", to: "SZX", who: "emanuel" },
   { date: "2020-05-31", from: "PDL", to: "LIS", who: "maxi" },
   { date: "2026-10-02", from: "HKG", to: "TPE", who: "emanuel" },
+  { date: "2020-06-01", from: "LIS", to: "ZRH", who: "maxi" },
 ];
