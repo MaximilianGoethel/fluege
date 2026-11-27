@@ -63,4 +63,5 @@ const FLIGHTS = [
   { date: "2023-05-20", from: "MUC", to: "SAW", who: "emanuel" },
   { date: "2025-03-19", from: "DPS", to: "CAN", who: "yaro" },
   { date: "2023-05-25", from: "SAW", to: "TLV", who: "emanuel" },
+  { date: "2023-06-10", from: "TLV", to: "SAW", who: "emanuel" },
 ];
