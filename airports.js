@@ -15,4 +15,6 @@ const AIRPORTS = {
   SIN: { city: "Singapore", country: "Singapur", lat: 1.35, lon: 103.99 },
   LPQ: { city: "Luang Phabang", country: "Laos", lat: 19.9, lon: 102.17 },
   HAN: { city: "Hanoi", country: "Vietnam", lat: 21.22, lon: 105.81 },
+  ZRH: { city: "Zürich", country: "Schweiz", lat: 47.46, lon: 8.55 },
+  JFK: { city: "New York", country: "USA", lat: 40.64, lon: -73.78 },
 };
