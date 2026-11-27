@@ -32,4 +32,5 @@ const AIRPORTS = {
   FCO: { city: "Rome", country: "Italien", lat: 41.8, lon: 12.25 },
   LIS: { city: "Lissabon", country: "Portugal", lat: 38.78, lon: -9.14 },
   CMN: { city: "Casablanca", country: "Marokko", lat: 33.37, lon: -7.59 },
+  SAW: { city: "Pendik, Istanbul", country: "Türkei", lat: 40.9, lon: 29.31 },
 };
