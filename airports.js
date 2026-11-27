@@ -28,4 +28,5 @@ const AIRPORTS = {
   TNG: { city: "Tangier", country: "Marokko", lat: 35.73, lon: -5.92 },
   HKT: { city: "Phuket", country: "Thailand", lat: 8.11, lon: 98.32 },
   KUL: { city: "Sepang", country: "Malaysia", lat: 2.75, lon: 101.71 },
+  CIA: { city: "Rome", country: "Italien", lat: 41.8, lon: 12.6 },
 };
