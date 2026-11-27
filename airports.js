@@ -20,4 +20,6 @@ const AIRPORTS = {
   MIA: { city: "Miami", country: "USA", lat: 25.8, lon: -80.29 },
   FDH: { city: "Friedrichshafen", country: "Deutschland", lat: 47.67, lon: 9.51 },
   KEF: { city: "Reykjavík", country: "Island", lat: 63.99, lon: -22.61 },
+  DAD: { city: "Da Nang", country: "Vietnam", lat: 16.04, lon: 108.2 },
+  SGN: { city: "Ho Chi Minh City", country: "Vietnam", lat: 10.82, lon: 106.65 },
 };
