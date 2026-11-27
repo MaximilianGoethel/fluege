@@ -24,4 +24,6 @@ const AIRPORTS = {
   SGN: { city: "Ho Chi Minh City", country: "Vietnam", lat: 10.82, lon: 106.65 },
   LPA: { city: "Gran Canaria Island", country: "Spanien", lat: 27.93, lon: -15.39 },
   HUI: { city: "Huế", country: "Vietnam", lat: 16.4, lon: 107.7 },
+  FMM: { city: "Memmingen", country: "Deutschland", lat: 47.99, lon: 10.24 },
+  TNG: { city: "Tangier", country: "Marokko", lat: 35.73, lon: -5.92 },
 };
