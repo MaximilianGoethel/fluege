@@ -1,0 +1,96 @@
+/* ===== Farben (hier zentral änderbar) ===== */
+:root {
+  --bg: #0b1020;        /* Hintergrund */
+  --ocean: #0e1529;     /* Meer */
+  --land: #1c2741;      /* Länder */
+  --panel: #111a2e;     /* Seitenleiste */
+  --border: #233050;    /* Trennlinien */
+  --text: #e6e9f0;      /* Schrift */
+  --muted: #8a94ad;     /* graue Schrift */
+  --accent: #4fd1ff;    /* Akzentfarbe für Fluglinien (ab Schritt 3) */
+}
+
+/* ===== Grundeinstellungen ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ===== Aufteilung: Karte links, Leiste rechts ===== */
+.layout {
+  display: flex;
+  height: 100vh;
+}
+
+.map-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+#map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Karte ===== */
+.sphere {
+  fill: var(--ocean);
+}
+
+.graticule {
+  fill: none;
+  stroke: #ffffff;
+  stroke-opacity: 0.04;
+}
+
+.country {
+  fill: var(--land);
+  stroke: var(--bg);
+  stroke-width: 0.5;
+}
+
+/* ===== Seitenleiste ===== */
+.sidebar {
+  width: 300px;
+  padding: 32px 24px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+}
+
+.sidebar h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.sub {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ===== Handy: Leiste rutscht unter die Karte ===== */
+@media (max-width: 800px) {
+  .layout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .map-wrap {
+    flex: none;
+    height: 60vh;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}

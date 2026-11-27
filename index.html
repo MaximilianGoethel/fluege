@@ -4,10 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meine Flüge</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<!-- Platzhalter: zeigt nur, dass GitHub Pages funktioniert -->
-<body style="background:#0b1020; color:#e6e9f0; font-family:sans-serif; text-align:center; padding-top:20vh;">
-  <h1>Meine Flüge ✈️</h1>
-  <p>Hier entsteht bald die Weltkarte.</p>
+<body>
+  <main class="layout">
+
+    <!-- Bereich für die Weltkarte -->
+    <section class="map-wrap">
+      <svg id="map"></svg>
+    </section>
+
+    <!-- Seitenleiste (Statistik kommt in Schritt 4) -->
+    <aside class="sidebar">
+      <h1>Meine Flüge</h1>
+      <p class="sub">Unterwegs seit 29.08.2026</p>
+    </aside>
+
+  </main>
+
+  <!-- Bibliotheken (liegen im Ordner lib, nicht bearbeiten) -->
+  <script src="lib/d3.min.js"></script>
+  <script src="lib/topojson-client.min.js"></script>
+
+  <!-- Daten -->
+  <script src="world.js"></script>
+
+  <!-- Eigener Code: Karte zeichnen -->
+  <script src="app.js"></script>
 </body>
 </html>
