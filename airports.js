@@ -13,4 +13,6 @@ const AIRPORTS = {
   BKK: { city: "Bangkok",   country: "Thailand",    lat: 13.69, lon: 100.75 },
   TSA: { city: "Taipei", country: "Taiwan", lat: 25.07, lon: 121.55 },
   SIN: { city: "Singapore", country: "Singapur", lat: 1.35, lon: 103.99 },
+  LPQ: { city: "Luang Phabang", country: "Laos", lat: 19.9, lon: 102.17 },
+  HAN: { city: "Hanoi", country: "Vietnam", lat: 21.22, lon: 105.81 },
 };
