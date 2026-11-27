@@ -44,4 +44,5 @@ const AIRPORTS = {
   DPS: { city: "Kuta, Badung", country: "Indonesien", lat: -8.75, lon: 115.17 },
   CAN: { city: "Guangzhou", country: "China, Festland", lat: 23.39, lon: 113.3 },
   TLV: { city: "Tel Aviv", country: "Israel", lat: 32.01, lon: 34.89 },
+  KIX: { city: "Osaka", country: "Japan", lat: 34.43, lon: 135.24 },
 };
