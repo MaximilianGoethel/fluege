@@ -49,4 +49,5 @@ const AIRPORTS = {
   OKA: { city: "Naha", country: "Japan", lat: 26.19, lon: 127.64 },
   ICN: { city: "Seoul", country: "Südkorea", lat: 37.47, lon: 126.45 },
   STN: { city: "London, Essex", country: "Vereinigtes Königreich", lat: 51.88, lon: 0.23 },
+  PVG: { city: "Shanghai", country: "China, Festland", lat: 31.14, lon: 121.81 },
 };
