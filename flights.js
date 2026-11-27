@@ -14,4 +14,5 @@ const FLIGHTS = [
   { date: "2026-11-17", from: "PEK", to: "HKG" },
   { date: "2026-11-21", from: "SZX", to: "SHA" },
   { date: "2026-11-24", from: "SHA", to: "SZX" },
+  { date: "2026-12-05", from: "SZX", to: "SHA", duration: "2:30" },
 ];
