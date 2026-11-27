@@ -47,4 +47,5 @@ const AIRPORTS = {
   KIX: { city: "Osaka", country: "Japan", lat: 34.43, lon: 135.24 },
   NRT: { city: "Narita", country: "Japan", lat: 35.77, lon: 140.39 },
   OKA: { city: "Naha", country: "Japan", lat: 26.19, lon: 127.64 },
+  ICN: { city: "Seoul", country: "Südkorea", lat: 37.47, lon: 126.45 },
 };
