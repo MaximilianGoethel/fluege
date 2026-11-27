@@ -81,4 +81,5 @@ const FLIGHTS = [
   { date: "2019-08-08", from: "FRA", to: "YVR", who: "yaro" },
   { date: "2019-08-29", from: "YVR", to: "MUC", who: "yaro" },
   { date: "2018-08-06", from: "MUC", to: "CDG", who: "yaro" },
+  { date: "2018-08-13", from: "CDG", to: "MUC", who: "yaro" },
 ];
