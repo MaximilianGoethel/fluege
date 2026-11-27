@@ -34,4 +34,5 @@ const AIRPORTS = {
   CMN: { city: "Casablanca", country: "Marokko", lat: 33.37, lon: -7.59 },
   SAW: { city: "Pendik, Istanbul", country: "Türkei", lat: 40.9, lon: 29.31 },
   VCL: { city: "Tam Nghĩa", country: "Vietnam", lat: 15.4, lon: 108.71 },
+  NCE: { city: "Nice, Alpes-Maritimes", country: "Frankreich", lat: 43.66, lon: 7.22 },
 };
