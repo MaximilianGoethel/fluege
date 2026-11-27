@@ -7,18 +7,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="layout">
+  <main class="map-wrap">
 
-    <!-- Bereich für die Weltkarte -->
-    <section class="map-wrap">
-      <svg id="map"></svg>
-    </section>
+    <!-- Weltkarte (wird von app.js gezeichnet) -->
+    <svg id="map"></svg>
 
-    <!-- Seitenleiste (Statistik kommt in Schritt 4) -->
-    <aside class="sidebar">
+    <!-- Zähler oben links -->
+    <div class="panel">
       <h1>Meine Flüge</h1>
-      <p class="sub">Unterwegs seit 29.08.2026</p>
-    </aside>
+      <p class="route" id="route"></p>
+
+      <div class="stats">
+        <div>
+          <span class="value" id="stat-km">0</span>
+          <span class="label">Kilometer</span>
+        </div>
+        <div>
+          <span class="value" id="stat-time">0 h 0 min</span>
+          <span class="label">in der Luft</span>
+        </div>
+        <div>
+          <span class="value" id="stat-flights">0</span>
+          <span class="label">Flüge</span>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button id="btn-skip">Überspringen</button>
+        <button id="btn-replay">Nochmal abspielen</button>
+      </div>
+    </div>
 
   </main>
 
@@ -31,7 +49,7 @@
   <script src="airports.js"></script>
   <script src="flights.js"></script>
 
-  <!-- Eigener Code: Karte und Flüge zeichnen -->
+  <!-- Eigener Code: Karte, Animation, Zähler -->
   <script src="app.js"></script>
 </body>
 </html>

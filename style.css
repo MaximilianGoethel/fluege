@@ -3,11 +3,11 @@
   --bg: #0b1020;        /* Hintergrund */
   --ocean: #0e1529;     /* Meer */
   --land: #1c2741;      /* Länder */
-  --panel: #111a2e;     /* Seitenleiste */
+  --panel: rgba(17, 26, 46, 0.85); /* Zähler-Box (leicht durchsichtig) */
   --border: #233050;    /* Trennlinien */
   --text: #e6e9f0;      /* Schrift */
   --muted: #8a94ad;     /* graue Schrift */
-  --accent: #4fd1ff;    /* Akzentfarbe für Fluglinien (ab Schritt 3) */
+  --accent: #4fd1ff;    /* Blau der Fluglinien */
 }
 
 /* ===== Grundeinstellungen ===== */
@@ -21,18 +21,15 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
 }
 
-/* ===== Aufteilung: Karte links, Leiste rechts ===== */
-.layout {
-  display: flex;
-  height: 100vh;
-}
-
+/* ===== Karte über den ganzen Bildschirm ===== */
 .map-wrap {
-  flex: 1;
-  min-width: 0;
-  background: var(--ocean); /* gleiche Farbe wie das Meer, damit kein Rand sichtbar ist */
+  position: relative;
+  height: 100vh;
+  height: 100svh; /* auf dem Handy ohne Browser-Leiste */
+  background: var(--ocean);
 }
 
 #map {
@@ -41,7 +38,6 @@ body {
   height: 100%;
 }
 
-/* ===== Karte ===== */
 .sphere {
   fill: var(--ocean);
 }
@@ -72,40 +68,102 @@ body {
   stroke-width: 1.5;
 }
 
-/* ===== Seitenleiste ===== */
-.sidebar {
-  width: 300px;
-  padding: 32px 24px;
-  background: var(--panel);
-  border-left: 1px solid var(--border);
+.plane {
+  fill: #ffffff;
 }
 
-.sidebar h1 {
-  font-size: 1.4rem;
+/* ===== Zähler-Box oben links ===== */
+.panel {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 280px;
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.panel h1 {
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
-.sub {
-  margin-top: 6px;
+/* aktuelle Strecke, z. B. "29.08.26 · Frankfurt → Shenzhen" */
+.route {
+  min-height: 1.3em;
+  margin-top: 4px;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;      /* immer in einer Zeile, damit die Box nicht springt */
+  overflow: hidden;
+  text-overflow: ellipsis;  /* zu lange Namen enden mit "…" */
 }
 
-/* ===== Handy: Leiste rutscht unter die Karte ===== */
-@media (max-width: 800px) {
-  .layout {
-    flex-direction: column;
-    height: auto;
+.stats {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums; /* Ziffern gleich breit, damit nichts wackelt */
+}
+
+.label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ===== Buttons ===== */
+.buttons {
+  margin-top: 16px;
+}
+
+button {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: rgba(79, 209, 255, 0.12);
+}
+
+/* ===== Handy: Box oben über die ganze Breite, Zahlen nebeneinander ===== */
+@media (max-width: 700px) {
+  .panel {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    padding: 14px 16px;
   }
 
-  .map-wrap {
-    flex: none;
-    height: 60vh;
+  .stats {
+    grid-template-columns: repeat(3, auto);
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
   }
 
-  .sidebar {
-    width: 100%;
-    border-left: none;
-    border-top: 1px solid var(--border);
+  .value {
+    font-size: 1.15rem;
+  }
+
+  .buttons {
+    margin-top: 12px;
   }
 }
