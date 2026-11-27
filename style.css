@@ -32,6 +32,7 @@ body {
 .map-wrap {
   flex: 1;
   min-width: 0;
+  background: var(--ocean); /* gleiche Farbe wie das Meer, damit kein Rand sichtbar ist */
 }
 
 #map {
@@ -55,6 +56,20 @@ body {
   fill: var(--land);
   stroke: var(--bg);
   stroke-width: 0.5;
+}
+
+/* ===== Flüge ===== */
+.flight {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.airport {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
 }
 
 /* ===== Seitenleiste ===== */
