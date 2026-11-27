@@ -29,4 +29,6 @@ const AIRPORTS = {
   HKT: { city: "Phuket", country: "Thailand", lat: 8.11, lon: 98.32 },
   KUL: { city: "Sepang", country: "Malaysia", lat: 2.75, lon: 101.71 },
   CIA: { city: "Rome", country: "Italien", lat: 41.8, lon: 12.6 },
+  FCO: { city: "Rome", country: "Italien", lat: 41.8, lon: 12.25 },
+  LIS: { city: "Lissabon", country: "Portugal", lat: 38.78, lon: -9.14 },
 };
