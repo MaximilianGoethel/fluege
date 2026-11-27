@@ -51,4 +51,6 @@ const AIRPORTS = {
   STN: { city: "London, Essex", country: "Vereinigtes Königreich", lat: 51.88, lon: 0.23 },
   PVG: { city: "Shanghai", country: "China, Festland", lat: 31.14, lon: 121.81 },
   IST: { city: "Istanbul", country: "Türkei", lat: 41.27, lon: 28.73 },
+  NRN: { city: "Weeze", country: "Deutschland", lat: 51.6, lon: 6.14 },
+  AGA: { city: "Agadir", country: "Marokko", lat: 30.32, lon: -9.41 },
 };
