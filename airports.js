@@ -17,4 +17,5 @@ const AIRPORTS = {
   HAN: { city: "Hanoi", country: "Vietnam", lat: 21.22, lon: 105.81 },
   ZRH: { city: "Zürich", country: "Schweiz", lat: 47.46, lon: 8.55 },
   JFK: { city: "New York", country: "USA", lat: 40.64, lon: -73.78 },
+  MIA: { city: "Miami", country: "USA", lat: 25.8, lon: -80.29 },
 };
