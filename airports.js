@@ -36,4 +36,5 @@ const AIRPORTS = {
   VCL: { city: "Tam Nghĩa", country: "Vietnam", lat: 15.4, lon: 108.71 },
   NCE: { city: "Nice, Alpes-Maritimes", country: "Frankreich", lat: 43.66, lon: 7.22 },
   MLA: { city: "Valletta", country: "Malta", lat: 35.85, lon: 14.49 },
+  PDL: { city: "Ponta Delgada", country: "Portugal", lat: 37.74, lon: -25.7 },
 };
