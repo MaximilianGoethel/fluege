@@ -25,7 +25,7 @@ const FLIGHTS = [
   { date: "2025-09-20", from: "JFK", to: "MIA", who: "maxi" },
   { date: "2025-09-26", from: "MIA", to: "ZRH", who: "maxi" },
   { date: "2018-08-16", from: "FDH", to: "KEF", who: "maxi" },
-  { date: "2026-11-27", from: "DAD", to: "SGN", who: "yaro" },
+  { date: "2026-11-27", from: "VCL", to: "SGN", who: "yaro" },
   { date: "2025-05-03", from: "MUC", to: "LPA", who: "emanuel" },
   { date: "2025-01-01", from: "HAN", to: "HUI", who: "yaro" },
   { date: "2025-04-26", from: "FMM", to: "TNG", who: "emanuel" },
