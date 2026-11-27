@@ -39,4 +39,5 @@ const AIRPORTS = {
   PDL: { city: "Ponta Delgada", country: "Portugal", lat: 37.74, lon: -25.7 },
   HKK: { city: "Hokitika Airfield", country: "Neuseeland", lat: -42.71, lon: 170.99 },
   GOT: { city: "Göteborg", country: "Schweden", lat: 57.66, lon: 12.28 },
+  CFU: { city: "Kerkyra", country: "Griechenland", lat: 39.6, lon: 19.91 },
 };
