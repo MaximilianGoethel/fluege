@@ -11,4 +11,5 @@ const AIRPORTS = {
   TPE: { city: "Taipeh",    country: "Taiwan",      lat: 25.08, lon: 121.22 },
   KHH: { city: "Kaohsiung", country: "Taiwan",      lat: 22.58, lon: 120.35 },
   BKK: { city: "Bangkok",   country: "Thailand",    lat: 13.69, lon: 100.75 },
+  TSA: { city: "Taipei", country: "Taiwan", lat: 25.07, lon: 121.55 },
 };
