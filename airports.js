@@ -18,4 +18,6 @@ const AIRPORTS = {
   ZRH: { city: "Zürich", country: "Schweiz", lat: 47.46, lon: 8.55 },
   JFK: { city: "New York", country: "USA", lat: 40.64, lon: -73.78 },
   MIA: { city: "Miami", country: "USA", lat: 25.8, lon: -80.29 },
+  FDH: { city: "Friedrichshafen", country: "Deutschland", lat: 47.67, lon: 9.51 },
+  KEF: { city: "Reykjavík", country: "Island", lat: 63.99, lon: -22.61 },
 };
