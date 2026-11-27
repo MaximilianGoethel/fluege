@@ -58,62 +58,67 @@ function formatCO2(kg) {
 
 // ---------- Flüge vorbereiten ----------
 
-const flights = FLIGHTS
-  // nur Flüge, deren Flughäfen in airports.js stehen
-  .filter(flight => {
-    const ok = AIRPORTS[flight.from] && AIRPORTS[flight.to];
-    if (!ok) {
-      console.warn("Flug übersprungen, Flughafen fehlt in airports.js:", flight);
-    }
-    return ok;
-  })
-  // nach Datum sortieren (ältester Flug zuerst)
-  .sort((a, b) => a.date.localeCompare(b.date))
-  // Entfernung und Flugzeit ausrechnen
-  .map(flight => {
-    const from = coords(flight.from);
-    const to = coords(flight.to);
+let flights = [];        // aufbereitete Flüge (sortiert, mit km, Zeit, CO2)
+let usedAirports = [];   // alle Flughafen-Codes, die vorkommen
+let progress = [];       // Fortschritt jedes Flugs: 0 = noch nicht gestartet, 1 = angekommen
+let timer = null;
 
-    // Großkreis-Entfernung (d3.geoDistance nutzt die Haversine-Formel)
-    const km = Math.round(d3.geoDistance(from, to) * EARTH_RADIUS);
+// Liest FLIGHTS und AIRPORTS und rechnet alles aus.
+// Wird beim Start aufgerufen und nochmal, wenn über das Formular ein Flug dazukommt.
+function prepareFlights() {
+  flights = FLIGHTS
+    // nur Flüge, deren Flughäfen in airports.js stehen
+    .filter(flight => {
+      const ok = AIRPORTS[flight.from] && AIRPORTS[flight.to];
+      if (!ok) {
+        console.warn("Flug übersprungen, Flughafen fehlt in airports.js:", flight);
+      }
+      return ok;
+    })
+    // nach Datum sortieren (ältester Flug zuerst)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    // Entfernung und Flugzeit ausrechnen
+    .map(flight => {
+      const from = coords(flight.from);
+      const to = coords(flight.to);
 
-    // echte Flugzeit, wenn angegeben – sonst Schätzung: km / 800 km/h + 30 min
-    const minutes = flight.duration
-      ? parseDuration(flight.duration)
-      : km / 800 * 60 + 30;
+      // Großkreis-Entfernung (d3.geoDistance nutzt die Haversine-Formel)
+      const km = Math.round(d3.geoDistance(from, to) * EARTH_RADIUS);
 
-    // CO2 in kg (Kurzstrecke pro km etwas mehr, weil Start und Steigflug mehr Sprit brauchen)
-    const co2 = km * (km < 3700 ? CO2_SHORT : CO2_LONG);
+      // echte Flugzeit, wenn angegeben – sonst Schätzung: km / 800 km/h + 30 min
+      const minutes = flight.duration
+        ? parseDuration(flight.duration)
+        : km / 800 * 60 + 30;
 
-    return {
-      ...flight,
-      km: km,
-      minutes: minutes,
-      co2: co2,
-      arc: d3.geoInterpolate(from, to), // Punkt auf dem Großkreisbogen (0 = Start, 1 = Ziel)
-    };
+      // CO2 in kg (Kurzstrecke pro km etwas mehr, weil Start und Steigflug mehr Sprit brauchen)
+      const co2 = km * (km < 3700 ? CO2_SHORT : CO2_LONG);
+
+      return {
+        ...flight,
+        km: km,
+        minutes: minutes,
+        co2: co2,
+        arc: d3.geoInterpolate(from, to), // Punkt auf dem Großkreisbogen (0 = Start, 1 = Ziel)
+      };
+    });
+
+  // Zeitplan der Animation: jeder Flug 1,4 s, lange Strecken bis zu 2,6 s
+  const rawDurations = flights.map(f => 1400 + Math.min(f.km, 10000) / 10000 * 1200);
+
+  // Bei vielen Flügen alles schneller abspielen, damit es höchstens 25 s dauert
+  const rawTotal = d3.sum(rawDurations) + GAP * flights.length;
+  const speed = Math.min(1, MAX_TOTAL / rawTotal);
+
+  let clock = START_DELAY;
+  flights.forEach((flight, i) => {
+    flight.animStart = clock;
+    flight.animDuration = rawDurations[i] * speed;
+    clock += (rawDurations[i] + GAP) * speed;
   });
 
-
-// ---------- Zeitplan der Animation ----------
-
-// Jeder Flug dauert 1,4 s, lange Strecken bis zu 2,6 s
-const rawDurations = flights.map(f => 1400 + Math.min(f.km, 10000) / 10000 * 1200);
-
-// Bei vielen Flügen alles schneller abspielen, damit es höchstens 25 s dauert
-const rawTotal = d3.sum(rawDurations) + GAP * flights.length;
-const speed = Math.min(1, MAX_TOTAL / rawTotal);
-
-let clock = START_DELAY;
-flights.forEach((flight, i) => {
-  flight.animStart = clock;
-  flight.animDuration = rawDurations[i] * speed;
-  clock += (rawDurations[i] + GAP) * speed;
-});
-
-// Fortschritt jedes Flugs: 0 = noch nicht gestartet, 1 = angekommen
-let progress = flights.map(() => 0);
-let timer = null;
+  usedAirports = [...new Set(flights.flatMap(f => [f.from, f.to]))];
+  progress = flights.map(() => 0);
+}
 
 
 // ---------- Karte aufbauen ----------
@@ -150,20 +155,26 @@ const land = svg.append("g")
   .join("path")
   .attr("class", "country");
 
-const lines = svg.append("g")
-  .attr("filter", "url(#glow)")
-  .selectAll("path")
-  .data(flights)
-  .join("path")
-  .attr("class", "flight");
+const linesLayer = svg.append("g").attr("filter", "url(#glow)"); // Fluglinien
+const dotsLayer = svg.append("g");                               // Flughafen-Punkte
+let lines;
+let dots;
 
-const usedAirports = [...new Set(flights.flatMap(f => [f.from, f.to]))];
-const dots = svg.append("g")
-  .selectAll("circle")
-  .data(usedAirports)
-  .join("circle")
-  .attr("class", "airport")
-  .attr("r", 3);
+// Verknüpft Linien und Punkte mit den aktuellen Flügen
+function bindData() {
+  lines = linesLayer
+    .selectAll("path")
+    .data(flights)
+    .join("path")
+    .attr("class", "flight");
+
+  dots = dotsLayer
+    .selectAll("circle")
+    .data(usedAirports)
+    .join("circle")
+    .attr("class", "airport")
+    .attr("r", 3);
+}
 
 const plane = svg.append("path")
   .attr("class", "plane")
@@ -313,6 +324,13 @@ d3.select("#btn-replay").on("click", play);
 
 // ---------- Start ----------
 
-resize();
-play();
+// Alles neu einlesen, zeichnen und abspielen (auch nach einem neuen Flug aus dem Formular)
+function refreshFlights() {
+  prepareFlights();
+  bindData();
+  resize();
+  play();
+}
+
+refreshFlights();
 window.addEventListener("resize", resize);
