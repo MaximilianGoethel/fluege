@@ -45,4 +45,6 @@ const AIRPORTS = {
   CAN: { city: "Guangzhou", country: "China, Festland", lat: 23.39, lon: 113.3 },
   TLV: { city: "Tel Aviv", country: "Israel", lat: 32.01, lon: 34.89 },
   KIX: { city: "Osaka", country: "Japan", lat: 34.43, lon: 135.24 },
+  NRT: { city: "Narita", country: "Japan", lat: 35.77, lon: 140.39 },
+  OKA: { city: "Naha", country: "Japan", lat: 26.19, lon: 127.64 },
 };
