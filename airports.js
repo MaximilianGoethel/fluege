@@ -43,4 +43,5 @@ const AIRPORTS = {
   LHR: { city: "London", country: "Vereinigtes Königreich", lat: 51.47, lon: -0.46 },
   DPS: { city: "Kuta, Badung", country: "Indonesien", lat: -8.75, lon: 115.17 },
   CAN: { city: "Guangzhou", country: "China, Festland", lat: 23.39, lon: 113.3 },
+  TLV: { city: "Tel Aviv", country: "Israel", lat: 32.01, lon: 34.89 },
 };
