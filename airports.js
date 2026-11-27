@@ -55,4 +55,5 @@ const AIRPORTS = {
   AGA: { city: "Agadir", country: "Marokko", lat: 30.32, lon: -9.41 },
   EWR: { city: "Newark", country: "USA", lat: 40.69, lon: -74.17 },
   YVR: { city: "Vancouver", country: "Kanada", lat: 49.19, lon: -123.18 },
+  CDG: { city: "Paris", country: "Frankreich", lat: 49.01, lon: 2.55 },
 };
