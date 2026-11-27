@@ -50,4 +50,5 @@ const AIRPORTS = {
   ICN: { city: "Seoul", country: "Südkorea", lat: 37.47, lon: 126.45 },
   STN: { city: "London, Essex", country: "Vereinigtes Königreich", lat: 51.88, lon: 0.23 },
   PVG: { city: "Shanghai", country: "China, Festland", lat: 31.14, lon: 121.81 },
+  IST: { city: "Istanbul", country: "Türkei", lat: 41.27, lon: 28.73 },
 };
