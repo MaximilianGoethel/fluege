@@ -9,6 +9,7 @@
 const REPO = "MaximilianGoethel/fluege";
 const BRANCH = "main";
 const TOKEN_KEY = "fluege-github-token";
+const PERSON_KEY = "fluege-person"; // merkt sich, wer zuletzt eingetragen hat
 
 // Städte, die man oft auf Deutsch eintippt → englischer Name in der Datenbank
 const CITY_ALIASES = {
@@ -49,6 +50,14 @@ function forgetToken() {
   try { localStorage.removeItem(TOKEN_KEY); } catch (error) { /* ignorieren */ }
 }
 
+function getLastPerson() {
+  try { return localStorage.getItem(PERSON_KEY) || ""; } catch (error) { return ""; }
+}
+
+function saveLastPerson(who) {
+  try { localStorage.setItem(PERSON_KEY, who); } catch (error) { /* ignorieren */ }
+}
+
 
 // ---------- Elemente auf der Seite ----------
 
@@ -61,6 +70,15 @@ const tokenWrap = document.getElementById("f-token-wrap");
 const tokenInput = document.getElementById("f-token");
 const dateInput = document.getElementById("f-date");
 const durationInput = document.getElementById("f-duration");
+const whoSelect = document.getElementById("f-who");
+
+// Auswahl "Wer?" mit allen Personen aus people.js füllen
+Object.keys(PEOPLE).forEach(key => {
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = PEOPLE[key].name;
+  whoSelect.appendChild(option);
+});
 
 // Für "Von" und "Nach" jeweils: Eingabefeld, Info-Zeile, Feld für den Stadtnamen
 const fields = {
@@ -180,7 +198,13 @@ function checkField(key) {
       : `✓ ${a.code} – ${a.city}, ${a.country}`;
     // Bei neuen Flughäfen kann man den Stadtnamen für die Website anpassen
     field.cityWrap.hidden = !a.isNew;
-    if (a.isNew) field.cityInput.value = a.city;
+    if (a.isNew) {
+      // deutsch eingetippter Name (z. B. "Singapur") wird übernommen, sonst der aus der Datenbank
+      const typed = field.input.value.trim();
+      field.cityInput.value = CITY_ALIASES[typed.toLowerCase()]
+        ? typed.charAt(0).toUpperCase() + typed.slice(1)
+        : a.city;
+    }
   } else {
     field.info.className = "hint warn";
     field.info.textContent = result.message;
@@ -201,6 +225,9 @@ function today() {
 function openForm() {
   form.reset();
   dateInput.value = today();
+  // vorauswählen: wer gerade angezeigt wird, sonst wer zuletzt eingetragen hat
+  const last = getLastPerson();
+  whoSelect.value = selected !== "alle" ? selected : (PEOPLE[last] ? last : DEFAULT_PERSON);
   Object.keys(fields).forEach(key => {
     fields[key].airport = null;
     fields[key].info.textContent = "";
@@ -311,6 +338,7 @@ form.addEventListener("submit", async event => {
   const to = fields.to.airport;
   const date = dateInput.value;
   const duration = durationInput.value.trim();
+  const who = whoSelect.value;
   const token = getToken() || tokenInput.value.trim();
 
   if (!date) return setStatus("Bitte ein Datum wählen.", "error");
@@ -331,7 +359,7 @@ form.addEventListener("submit", async event => {
   // Zeile für flights.js
   let flightLine = `  { date: "${date}", from: "${from.code}", to: "${to.code}"`;
   if (duration) flightLine += `, duration: "${duration}"`;
-  flightLine += " },";
+  flightLine += `, who: "${who}" },`;
 
   saveButton.disabled = true;
   setStatus("Speichere …", "");
@@ -353,15 +381,22 @@ form.addEventListener("submit", async event => {
     // 2. Flug in flights.js
     const file = await readFile("flights.js", token);
     const text = insertLine(file.text, "];", flightLine);
-    await writeFile("flights.js", text, file.sha, `Neuer Flug: ${shortDate(date)} ${from.code} → ${to.code}`, token);
+    await writeFile("flights.js", text, file.sha, `Neuer Flug (${PEOPLE[who].name}): ${shortDate(date)} ${from.code} → ${to.code}`, token);
 
     // Geklappt: Schlüssel merken und den Flug sofort auf der Karte zeigen
     saveToken(token);
+    saveLastPerson(who);
     Object.assign(AIRPORTS, newAirports);
     const flight = { date: date, from: from.code, to: to.code };
     if (duration) flight.duration = duration;
+    flight.who = who;
     FLIGHTS.push(flight);
-    refreshFlights();
+    // Wird gerade eine andere Person angezeigt? Dann zur Person des neuen Flugs wechseln
+    if (selected !== "alle" && selected !== who) {
+      selectPerson(who);
+    } else {
+      refreshFlights();
+    }
 
     setStatus("Gespeichert ✓ Für alle sichtbar in ca. 1–2 Minuten.", "ok");
     setTimeout(closeForm, 2500);

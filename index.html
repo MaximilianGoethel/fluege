@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meine Flüge</title>
-  <!-- "?v=4": Versionsnummer, damit der Browser nach Änderungen nicht die alte Datei nimmt -->
-  <link rel="stylesheet" href="style.css?v=4">
+  <title>Unsere Flüge</title>
+  <!-- "?v=5": Versionsnummer, damit der Browser nach Änderungen nicht die alte Datei nimmt -->
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <main class="map-wrap">
@@ -15,8 +15,11 @@
 
     <!-- Zähler oben links -->
     <div class="panel">
-      <h1>Meine Flüge</h1>
+      <h1 id="title">Unsere Flüge</h1>
       <p class="route" id="route"></p>
+
+      <!-- Auswahl: Alle / Maxi / Emanuel / Yaro (wird von app.js aus people.js erzeugt) -->
+      <div class="people" id="people"></div>
 
       <div class="stats">
         <div>
@@ -59,6 +62,10 @@
   <div class="modal" id="add-modal" hidden>
     <form class="modal-card" id="add-form" autocomplete="off">
       <h2>Neuer Flug</h2>
+
+      <label>Wer?
+        <select id="f-who"></select>
+      </label>
 
       <label>Datum
         <input type="date" id="f-date" required>
@@ -104,15 +111,16 @@
   <!-- Daten -->
   <script src="world.js"></script>
   <script>
-    // Flughäfen und Flüge immer frisch laden (nicht aus dem Browser-Speicher),
+    // Personen, Flughäfen und Flüge immer frisch laden (nicht aus dem Browser-Speicher),
     // damit neu eingetragene Flüge sofort nach dem Neuladen zu sehen sind
     const fresh = "?t=" + Date.now();
+    document.write('<script src="people.js' + fresh + '"><\/script>');
     document.write('<script src="airports.js' + fresh + '"><\/script>');
     document.write('<script src="flights.js' + fresh + '"><\/script>');
   </script>
 
   <!-- Eigener Code: Karte, Animation, Zähler; Formular für neue Flüge -->
-  <script src="app.js?v=4"></script>
-  <script src="admin.js?v=4"></script>
+  <script src="app.js?v=5"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 </html>

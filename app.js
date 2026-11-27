@@ -7,6 +7,7 @@ const MAX_TOTAL = 25000;   // ganze Animation dauert höchstens 25 Sekunden
 const GAP = 250;           // kurze Pause zwischen zwei Flügen (Millisekunden)
 const START_DELAY = 600;   // kurze Pause, bevor der erste Flug startet
 const EARTH_RADIUS = 6371; // Erdradius in km
+const STRIPE = 7;          // Länge der Farbstreifen bei gemeinsamen Strecken (Pixel)
 
 // CO2 pro Passagier und km (grobe Schätzung, Economy, nur CO2 ohne Kondensstreifen-Effekte,
 // Größenordnung nach den britischen Umrechnungsfaktoren DESNZ/DEFRA 2024)
@@ -21,6 +22,11 @@ const PLANE_SHAPE =
 
 
 // ---------- Hilfsfunktionen ----------
+
+// Zu wem gehört ein Flug? (ohne Angabe: DEFAULT_PERSON aus people.js)
+function personOf(flight) {
+  return flight.who || DEFAULT_PERSON;
+}
 
 // Koordinaten eines Flughafens als [Länge, Breite] (so will D3 es haben)
 function coords(code) {
@@ -63,18 +69,28 @@ let usedAirports = [];   // alle Flughafen-Codes, die vorkommen
 let progress = [];       // Fortschritt jedes Flugs: 0 = noch nicht gestartet, 1 = angekommen
 let timer = null;
 
+// Wessen Flüge werden gezeigt? "alle" oder ein Kürzel aus people.js.
+// Über die Adresse vorwählbar, z. B. …/fluege/#yaro
+let selected = PEOPLE[location.hash.slice(1)] ? location.hash.slice(1) : "alle";
+
 // Liest FLIGHTS und AIRPORTS und rechnet alles aus.
-// Wird beim Start aufgerufen und nochmal, wenn über das Formular ein Flug dazukommt.
+// Wird beim Start aufgerufen, beim Wechsel der Person und nach einem neuen Flug aus dem Formular.
 function prepareFlights() {
   flights = FLIGHTS
-    // nur Flüge, deren Flughäfen in airports.js stehen
+    // nur Flüge, deren Flughäfen und Person es gibt
     .filter(flight => {
-      const ok = AIRPORTS[flight.from] && AIRPORTS[flight.to];
-      if (!ok) {
+      if (!AIRPORTS[flight.from] || !AIRPORTS[flight.to]) {
         console.warn("Flug übersprungen, Flughafen fehlt in airports.js:", flight);
+        return false;
       }
-      return ok;
+      if (!PEOPLE[personOf(flight)]) {
+        console.warn("Flug übersprungen, Person fehlt in people.js:", flight);
+        return false;
+      }
+      return true;
     })
+    // nur die ausgewählte Person (oder alle)
+    .filter(flight => selected === "alle" || personOf(flight) === selected)
     // nach Datum sortieren (ältester Flug zuerst)
     .sort((a, b) => a.date.localeCompare(b.date))
     // Entfernung und Flugzeit ausrechnen
@@ -95,6 +111,8 @@ function prepareFlights() {
 
       return {
         ...flight,
+        who: personOf(flight),
+        color: PEOPLE[personOf(flight)].color, // Farbe der Person
         km: km,
         minutes: minutes,
         co2: co2,
@@ -114,6 +132,20 @@ function prepareFlights() {
     flight.animStart = clock;
     flight.animDuration = rawDurations[i] * speed;
     clock += (rawDurations[i] + GAP) * speed;
+  });
+
+  // Gleiche Strecke von mehreren Personen? Dann Linie gestreift in allen Farben,
+  // sonst würde eine Farbe die andere verdecken. Hin- und Rückflug zählen als gleiche Strecke.
+  const routePeople = {};
+  flights.forEach(f => {
+    const route = [f.from, f.to].sort().join("-");
+    routePeople[route] = routePeople[route] || [];
+    if (!routePeople[route].includes(f.who)) routePeople[route].push(f.who);
+  });
+  flights.forEach(f => {
+    const people = routePeople[[f.from, f.to].sort().join("-")];
+    f.stripeCount = people.length;          // wie viele Personen diese Strecke geflogen sind
+    f.stripeIndex = people.indexOf(f.who);  // die wievielte davon diese Person ist
   });
 
   usedAirports = [...new Set(flights.flatMap(f => [f.from, f.to]))];
@@ -166,7 +198,11 @@ function bindData() {
     .selectAll("path")
     .data(flights)
     .join("path")
-    .attr("class", "flight");
+    .attr("class", "flight")
+    .style("stroke", f => f.color)
+    // Streifen bei gemeinsamen Strecken: jede Person zeichnet nur jedes x-te Stück
+    .style("stroke-dasharray", f => f.stripeCount > 1 ? `${STRIPE} ${STRIPE * (f.stripeCount - 1)}` : null)
+    .style("stroke-dashoffset", f => f.stripeCount > 1 ? -f.stripeIndex * STRIPE : null);
 
   dots = dotsLayer
     .selectAll("circle")
@@ -204,9 +240,10 @@ function render() {
   // Linien: fertige ganz, laufende bis zum Flugzeug, kommende gar nicht
   lines.attr("d", (f, i) => progress[i] > 0 ? path(partialArc(f, progress[i])) : null);
 
-  // Punkte
+  // Punkte (bei einer Person in ihrer Farbe, bei allen hellgrau)
   dots
     .style("display", code => airportVisible(code) ? null : "none")
+    .style("fill", selected === "alle" ? null : PEOPLE[selected].color)
     .attr("cx", code => projection(coords(code))[0])
     .attr("cy", code => projection(coords(code))[1]);
 
@@ -242,11 +279,15 @@ function render() {
   // Text unter der Überschrift: aktuelle Strecke bzw. Zeitraum am Ende
   const started = progress.filter(p => p > 0).length;
   let routeText = "";
-  if (flights.length > 0 && landed === flights.length) {
+  if (flights.length === 0) {
+    routeText = "Noch keine Flüge";
+  } else if (landed === flights.length) {
     routeText = `${shortDate(flights[0].date)} – ${shortDate(flights[flights.length - 1].date)}`;
   } else if (started > 0) {
     const f = flights[started - 1];
-    routeText = `${shortDate(f.date)} · ${AIRPORTS[f.from].city} → ${AIRPORTS[f.to].city}`;
+    // bei "Alle" steht der Name dabei, z. B. "29.08.26 · Maxi: Frankfurt → Shenzhen"
+    const name = selected === "alle" ? `${PEOPLE[f.who].name}: ` : "";
+    routeText = `${shortDate(f.date)} · ${name}${AIRPORTS[f.from].city} → ${AIRPORTS[f.to].city}`;
   }
   d3.select("#route").text(routeText);
 }
@@ -322,6 +363,48 @@ d3.select("#btn-skip").on("click", finish);
 d3.select("#btn-replay").on("click", play);
 
 
+// ---------- Auswahl: wessen Flüge? ----------
+
+// Buttons "Alle", "Maxi", "Emanuel", "Yaro" aus people.js erzeugen
+const choices = [{ key: "alle", name: "Alle", color: null }].concat(
+  Object.keys(PEOPLE).map(key => ({ key: key, name: PEOPLE[key].name, color: PEOPLE[key].color }))
+);
+
+// Punkt für "Alle": aus allen Farben zusammengesetzt
+const allColors = Object.values(PEOPLE).map(p => p.color);
+const allDot = "conic-gradient(" +
+  allColors.map((c, i) => `${c} ${i / allColors.length * 100}% ${(i + 1) / allColors.length * 100}%`).join(", ") +
+  ")";
+
+const chips = d3.select("#people")
+  .selectAll("button")
+  .data(choices)
+  .join("button")
+  .attr("class", "chip")
+  .on("click", (event, choice) => selectPerson(choice.key));
+
+chips.append("span")
+  .attr("class", "chip-dot")
+  .style("background", c => c.color || allDot);
+
+chips.append("span").text(c => c.name);
+
+// Überschrift und aktiven Button passend zur Auswahl setzen
+function updateSelection() {
+  chips.classed("active", c => c.key === selected);
+  d3.select("#title").text(selected === "alle" ? "Unsere Flüge" : `Flüge von ${PEOPLE[selected].name}`);
+}
+
+// Person wechseln: Karte, Zähler und Animation passen sich an
+function selectPerson(key) {
+  selected = key;
+  // Adresse anpassen, damit man den Link teilen kann (z. B. …/fluege/#yaro)
+  history.replaceState(null, "", key === "alle" ? location.pathname : "#" + key);
+  updateSelection();
+  refreshFlights();
+}
+
+
 // ---------- Start ----------
 
 // Alles neu einlesen, zeichnen und abspielen (auch nach einem neuen Flug aus dem Formular)
@@ -332,5 +415,12 @@ function refreshFlights() {
   play();
 }
 
+updateSelection();
 refreshFlights();
 window.addEventListener("resize", resize);
+
+// Wenn jemand die Adresse ändert (z. B. …#yaro), Person wechseln
+window.addEventListener("hashchange", () => {
+  const key = location.hash.slice(1);
+  if (PEOPLE[key] && key !== selected) selectPerson(key);
+});
