@@ -8,6 +8,12 @@ const GAP = 250;           // kurze Pause zwischen zwei Flügen (Millisekunden)
 const START_DELAY = 600;   // kurze Pause, bevor der erste Flug startet
 const EARTH_RADIUS = 6371; // Erdradius in km
 
+// CO2 pro Passagier und km (grobe Schätzung, Economy, nur CO2 ohne Kondensstreifen-Effekte,
+// Größenordnung nach den britischen Umrechnungsfaktoren DESNZ/DEFRA 2024)
+const CO2_SHORT = 0.11;  // kg pro km bei Flügen unter 3700 km
+const CO2_LONG = 0.10;   // kg pro km bei Flügen ab 3700 km
+const TREE_KG_PER_YEAR = 12.5; // so viel CO2 bindet eine Buche im Schnitt pro Jahr (Wald-Zentrum Uni Münster)
+
 // Form des Flugzeugs (zeigt nach rechts, Mittelpunkt bei 0,0)
 const PLANE_SHAPE =
   "M 10 0 L 2 -1.5 L -2 -8 L -4 -8 L -1 -1.5 L -6 -1.5 L -8 -4 L -9.5 -4 " +
@@ -40,6 +46,15 @@ function formatTime(minutes) {
   return `${Math.floor(total / 60)} h ${total % 60} min`;
 }
 
+// 830 → "830 kg", 3396 → "3,4 t"
+function formatCO2(kg) {
+  if (kg < 1000) {
+    return `${Math.round(kg)} kg`;
+  }
+  const tonnes = (kg / 1000).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return `${tonnes} t`;
+}
+
 
 // ---------- Flüge vorbereiten ----------
 
@@ -67,10 +82,14 @@ const flights = FLIGHTS
       ? parseDuration(flight.duration)
       : km / 800 * 60 + 30;
 
+    // CO2 in kg (Kurzstrecke pro km etwas mehr, weil Start und Steigflug mehr Sprit brauchen)
+    const co2 = km * (km < 3700 ? CO2_SHORT : CO2_LONG);
+
     return {
       ...flight,
       km: km,
       minutes: minutes,
+      co2: co2,
       arc: d3.geoInterpolate(from, to), // Punkt auf dem Großkreisbogen (0 = Start, 1 = Ziel)
     };
   });
@@ -200,10 +219,14 @@ function render() {
   const km = d3.sum(flights, (f, i) => f.km * progress[i]);
   const minutes = d3.sum(flights, (f, i) => f.minutes * progress[i]);
   const landed = progress.filter(p => p === 1).length;
+  const co2 = d3.sum(flights, (f, i) => f.co2 * progress[i]);
+  const trees = Math.round(co2 / TREE_KG_PER_YEAR);
 
   d3.select("#stat-km").text(Math.round(km).toLocaleString("de-DE"));
   d3.select("#stat-time").text(formatTime(minutes));
   d3.select("#stat-flights").text(landed);
+  d3.select("#stat-co2").text(formatCO2(co2));
+  d3.select("#stat-trees").text(trees.toLocaleString("de-DE"));
 
   // Text unter der Überschrift: aktuelle Strecke bzw. Zeitraum am Ende
   const started = progress.filter(p => p > 0).length;

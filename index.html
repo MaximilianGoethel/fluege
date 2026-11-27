@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meine Flüge</title>
-  <!-- "?v=2": Versionsnummer, damit der Browser nach Änderungen nicht die alte Datei nimmt -->
-  <link rel="stylesheet" href="style.css?v=2">
+  <!-- "?v=3": Versionsnummer, damit der Browser nach Änderungen nicht die alte Datei nimmt -->
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <main class="map-wrap">
@@ -33,6 +33,18 @@
         </div>
       </div>
 
+      <!-- Klima-Bilanz (grobe Schätzung) -->
+      <div class="stats stats-co2">
+        <div>
+          <span class="value" id="stat-co2">0 kg</span>
+          <span class="label">CO₂ ausgestoßen</span>
+        </div>
+        <div>
+          <span class="value tree" id="stat-trees">0</span>
+          <span class="label">Bäume zum Ausgleich (1 Jahr)</span>
+        </div>
+      </div>
+
       <div class="buttons">
         <button id="btn-skip">Überspringen</button>
         <button id="btn-replay">Nochmal abspielen</button>
@@ -51,6 +63,6 @@
   <script src="flights.js"></script>
 
   <!-- Eigener Code: Karte, Animation, Zähler -->
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
