@@ -26,4 +26,6 @@ const AIRPORTS = {
   HUI: { city: "Huế", country: "Vietnam", lat: 16.4, lon: 107.7 },
   FMM: { city: "Memmingen", country: "Deutschland", lat: 47.99, lon: 10.24 },
   TNG: { city: "Tangier", country: "Marokko", lat: 35.73, lon: -5.92 },
+  HKT: { city: "Phuket", country: "Thailand", lat: 8.11, lon: 98.32 },
+  KUL: { city: "Sepang", country: "Malaysia", lat: 2.75, lon: 101.71 },
 };
